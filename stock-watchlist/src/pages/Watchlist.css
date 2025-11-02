@@ -133,6 +133,24 @@
   transform: none;
 }
 
+.clear-button {
+  background: #95a5a6;
+  color: #ffffff;
+  border: none;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.clear-button:hover {
+  background: #7f8c8d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+}
+
 /* Search Results */
 .search-results {
   margin-top: 2rem;

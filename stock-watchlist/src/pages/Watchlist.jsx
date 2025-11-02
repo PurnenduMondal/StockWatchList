@@ -120,6 +120,12 @@ const Watchlist = ({ user, onLogout }) => {
     }
   };
 
+  const handleClearSearch = () => {
+    setSearchResults([]);
+    setSearchQuery('');
+    setSearchError('');
+  };
+
   const isStockInWatchlist = (symbol) => {
     return watchlist.some(stock => stock.symbol === symbol);
   };
@@ -159,6 +165,15 @@ const Watchlist = ({ user, onLogout }) => {
             >
               {searchLoading ? 'Searching...' : 'Search'}
             </button>
+            {(searchResults.length > 0 || searchQuery) && (
+              <button 
+                onClick={handleClearSearch}
+                className="clear-button"
+                title="Clear search results and input"
+              >
+                Clear
+              </button>
+            )}
           </div>
 
           {searchError && <div className="error-message">{searchError}</div>}

@@ -1,5 +1,5 @@
 // API service for Stock Watchlist application
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://stock-watch-list-mw2q.vercel.app/api';
 
 class ApiService {
   constructor() {

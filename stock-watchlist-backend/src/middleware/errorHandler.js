@@ -63,6 +63,16 @@ const handleJWTError = () =>
 const handleJWTExpiredError = () =>
   new AppError('Your token has expired! Please log in again.', 401);
 
+const handleJoseError = (err) => {
+  if (err.code === 'ERR_JWT_EXPIRED') {
+    return new AppError('Your token has expired! Please log in again.', 401);
+  }
+  if (err.code === 'ERR_JWT_INVALID' || err.code === 'ERR_JWS_INVALID') {
+    return new AppError('Invalid token. Please log in again!', 401);
+  }
+  return new AppError('Token verification failed. Please log in again!', 401);
+};
+
 // Main error handling middleware
 export const errorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
@@ -80,6 +90,7 @@ export const errorHandler = (err, req, res, next) => {
     if (error.name === 'ValidationError') error = handleValidationErrorDB(error);
     if (error.name === 'JsonWebTokenError') error = handleJWTError();
     if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
+    if (error.code && error.code.startsWith('ERR_JWT')) error = handleJoseError(error);
 
     sendErrorProd(error, res);
   }

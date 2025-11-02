@@ -96,7 +96,7 @@ export const registerUser = async (req, res, next) => {
     await user.save();
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = await generateToken(user._id);
 
     // Update last login
     user.lastLogin = new Date();
@@ -131,7 +131,7 @@ export const loginUser = async (req, res, next) => {
     const user = await User.findByCredentials(email, password);
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = await generateToken(user._id);
 
     // Update last login
     user.lastLogin = new Date();

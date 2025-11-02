@@ -1,4 +1,4 @@
-import { SignJWT, jwtVerify } from 'jose';
+import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { AppError } from './errorHandler.js';
 
@@ -14,14 +14,11 @@ export const authenticateToken = async (req, res, next) => {
       return next(new AppError('Access token required', 401));
     }
 
-    // Verify token using jose
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret, {
-      issuer: 'stock-watchlist-api'
-    });
+    // Verify token using jsonwebtoken
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Get user from token
-    const user = await User.findById(payload.userId).select('-password');
+    const user = await User.findById(decoded.userId).select('-password');
     
     if (!user) {
       return next(new AppError('User not found', 401));
@@ -31,10 +28,10 @@ export const authenticateToken = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    if (error.code === 'ERR_JWT_INVALID') {
+    if (error.name === 'JsonWebTokenError') {
       return next(new AppError('Invalid token', 401));
     }
-    if (error.code === 'ERR_JWT_EXPIRED') {
+    if (error.name === 'TokenExpiredError') {
       return next(new AppError('Token expired', 401));
     }
     next(error);
@@ -51,11 +48,8 @@ export const optionalAuth = async (req, res, next) => {
 
     if (token) {
       try {
-        const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-        const { payload } = await jwtVerify(token, secret, {
-          issuer: 'stock-watchlist-api'
-        });
-        const user = await User.findById(payload.userId).select('-password');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.userId).select('-password');
         
         if (user && user.isActive) {
           req.user = user;
@@ -77,20 +71,16 @@ export const generateToken = async (userId) => {
     throw new Error('JWT_SECRET is not configured');
   }
   
-  const secret = new TextEncoder().encode(process.env.JWT_SECRET);
   const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
   
-  // Convert expiration time to seconds
-  const expirationTime = expiresIn.endsWith('d') 
-    ? parseInt(expiresIn) * 24 * 60 * 60 
-    : parseInt(expiresIn);
-  
-  const token = await new SignJWT({ userId })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setIssuer('stock-watchlist-api')
-    .setExpirationTime(Math.floor(Date.now() / 1000) + expirationTime)
-    .sign(secret);
+  const token = jwt.sign(
+    { userId },
+    process.env.JWT_SECRET,
+    { 
+      expiresIn,
+      issuer: 'stock-watchlist-api'
+    }
+  );
   
   return token;
 };
